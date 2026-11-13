@@ -1,0 +1,58 @@
+@startuml
+' Título de la leyenda en español (C4-PlantUML 2.11 o superior; en versiones anteriores no tiene efecto)
+!$LEGEND_TITLE_TEXT = "Leyenda"
+!include <C4/C4_Container>
+skinparam dpi 170
+LAYOUT_TOP_DOWN()
+
+UpdateElementStyle("person", $legendText="Persona")
+UpdateElementStyle("container", $legendText="Contenedor (aplicación en ejecución)")
+UpdateElementStyle("external_system", $legendText="Sistema de software externo")
+UpdateBoundaryStyle($legendText="Límite del sistema Banco Senior+")
+
+title [Contenedores] Sistema Banco Senior+
+footer Siglas: API = interfaz de programación de aplicaciones; HTTPS = HTTP seguro; JSON = formato de intercambio de datos; SFTP = protocolo seguro de transferencia de archivos; SMS = servicio de mensajes cortos; SQL = lenguaje de consulta de bases de datos; TCP = protocolo de control de transmisión.
+
+Person(pensionado, "Pensionado", "Consulta su pensión, gestiona su cuenta, autoriza a un apoderado y recibe los avisos.", $type="Persona")
+Person(apoderado, "Apoderado", "Consulta el saldo y el historial del pensionado que lo autorizó.", $type="Persona")
+Person(personal, "Personal del banco", "Soporte desbloquea cuentas y Compliance consulta los datos conservados.", $type="Persona")
+
+Boundary(banco, "Sistema Banco Senior+", $type="Sistema de software") {
+  Container(web, "Aplicación web", "Contenedor: React, TypeScript", "Muestra las pantallas del pensionado, del apoderado y de la consola interna.")
+  Container(app, "App móvil", "Contenedor: React Native", "Ofrece en iOS y Android las funciones del pensionado y del apoderado.")
+  Container(api, "API del sistema", "Contenedor: Python, FastAPI", "Contiene la lógica del negocio, corre en varias réplicas, envía los avisos en segundo plano con reintentos y guarda el saldo 60 segundos en memoria.")
+  ContainerDb(bd, "Base de datos", "Contenedor: PostgreSQL", "Guarda cifrada la información del sistema; la auditoría va en tablas de solo inserción.")
+}
+
+System_Ext(entidad, "Entidad estatal de pagos", "Envía el archivo de pagos de las pensiones.", $type="Sistema de software externo")
+System_Ext(core, "Core bancario", "Mantiene los saldos y movimientos y registra los abonos.", $type="Sistema de software externo")
+System_Ext(operador, "Operador de mensajería", "Entrega los SMS, correos y llamadas.", $type="Sistema de software externo")
+System_Ext(antifraude, "Motor antifraude", "Evalúa el riesgo de cada acceso.", $type="Sistema de software externo")
+System_Ext(certificadora, "Entidad de certificación digital", "Firma la autorización del apoderado.", $type="Sistema de software externo")
+
+Rel(pensionado, web, "Consulta su pensión y gestiona\nsu cuenta usando", "HTTPS")
+Rel(pensionado, app, "Consulta su pensión y gestiona\nsu cuenta usando")
+Rel(apoderado, web, "Consulta la información del\npensionado usando", "HTTPS")
+Rel(apoderado, app, "Consulta la información del\npensionado usando")
+Rel(personal, web, "Desbloquea cuentas y consulta\ndatos conservados usando", "HTTPS")
+
+Rel(web, api, "Envía las acciones de los\nusuarios a", "JSON/HTTPS")
+Rel(app, api, "Envía las acciones de los\nusuarios a", "JSON/HTTPS")
+Rel(api, bd, "Lee y escribe datos en", "SQL/TCP")
+
+Rel_U(entidad, api, "Deposita el archivo de pagos\ny recoge el reporte de\ndiferencias en", "SFTP")
+Rel(api, core, "Consulta saldos y movimientos\ny registra abonos en", "JSON/HTTPS")
+Rel(api, operador, "Solicita el envío de códigos,\navisos y alertas a", "JSON/HTTPS")
+Rel(api, antifraude, "Solicita la evaluación del\nriesgo de cada acceso a", "JSON/HTTPS")
+Rel(api, certificadora, "Solicita la firma de la\nautorización del apoderado a", "JSON/HTTPS")
+
+Lay_R(web, app)
+Lay_R(pensionado, apoderado)
+Lay_R(apoderado, personal)
+Lay_R(entidad, core)
+Lay_R(core, operador)
+Lay_R(operador, antifraude)
+Lay_R(antifraude, certificadora)
+
+SHOW_LEGEND()
+@enduml

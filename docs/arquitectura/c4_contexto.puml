@@ -1,0 +1,45 @@
+@startuml
+' Título de la leyenda en español (C4-PlantUML 2.11 o superior; en versiones anteriores no tiene efecto)
+!$LEGEND_TITLE_TEXT = "Leyenda"
+!include <C4/C4_Context>
+skinparam dpi 170
+LAYOUT_TOP_DOWN()
+
+UpdateElementStyle("person", $legendText="Persona")
+UpdateElementStyle("system", $legendText="Sistema de software (el que se modela)")
+UpdateElementStyle("external_system", $legendText="Sistema de software externo")
+
+title [Contexto] Sistema Banco Senior+
+footer Siglas: HTTPS = HTTP seguro; JSON = formato de intercambio de datos; SFTP = protocolo seguro de transferencia de archivos; SMS = servicio de mensajes cortos.
+
+Person(pensionado, "Pensionado", "Consulta su pensión, gestiona su cuenta, autoriza a un apoderado y recibe los avisos.", $type="Persona")
+Person(apoderado, "Apoderado", "Consulta el saldo y el historial del pensionado que lo autorizó.", $type="Persona")
+Person(personal, "Personal del banco", "Soporte desbloquea cuentas y Compliance consulta los datos conservados.", $type="Persona")
+
+System(banco, "Sistema Banco Senior+", "Canal digital del banco para pensionados: recibe y abona la pensión, avisa cada abono y permite consultar el saldo, gestionar la cuenta y autorizar a un apoderado.", $type="Sistema de software")
+
+System_Ext(entidad, "Entidad estatal de pagos", "Envía el archivo de pagos de las pensiones.", $type="Sistema de software externo")
+System_Ext(core, "Core bancario", "Mantiene los saldos y movimientos y registra los abonos.", $type="Sistema de software externo")
+System_Ext(operador, "Operador de mensajería", "Entrega los SMS, correos y llamadas.", $type="Sistema de software externo")
+System_Ext(antifraude, "Motor antifraude", "Evalúa el riesgo de cada acceso.", $type="Sistema de software externo")
+System_Ext(certificadora, "Entidad de certificación digital", "Firma la autorización del apoderado.", $type="Sistema de software externo")
+
+Rel(pensionado, banco, "Consulta su pensión, gestiona\nsu cuenta y autoriza a su\napoderado usando", "HTTPS")
+Rel(apoderado, banco, "Consulta la información del\npensionado usando", "HTTPS")
+Rel(personal, banco, "Desbloquea cuentas y consulta\ndatos conservados usando", "HTTPS")
+
+Rel_U(entidad, banco, "Deposita el archivo de pagos\ny recoge el reporte de\ndiferencias en", "SFTP")
+Rel(banco, core, "Consulta saldos y movimientos\ny registra abonos en", "JSON/HTTPS")
+Rel(banco, operador, "Solicita el envío de códigos,\navisos y alertas a", "JSON/HTTPS")
+Rel(banco, antifraude, "Solicita la evaluación del\nriesgo de cada acceso a", "JSON/HTTPS")
+Rel(banco, certificadora, "Solicita la firma de la\nautorización del apoderado a", "JSON/HTTPS")
+
+Lay_R(pensionado, apoderado)
+Lay_R(apoderado, personal)
+Lay_R(entidad, core)
+Lay_R(core, operador)
+Lay_R(operador, antifraude)
+Lay_R(antifraude, certificadora)
+
+SHOW_LEGEND()
+@enduml

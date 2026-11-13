@@ -1,0 +1,76 @@
+@startuml
+' Título de la leyenda en español (C4-PlantUML 2.11 o superior; en versiones anteriores no tiene efecto)
+!$LEGEND_TITLE_TEXT = "Leyenda"
+!include <C4/C4_Component>
+skinparam dpi 170
+LAYOUT_TOP_DOWN()
+
+UpdateElementStyle("container", $legendText="Contenedor (aplicación en ejecución)")
+UpdateElementStyle("component", $legendText="Componente del API")
+UpdateElementStyle("external_system", $legendText="Sistema de software externo")
+UpdateBoundaryStyle($legendText="Límite del contenedor API del sistema")
+
+title [Componentes] Banco Senior+ - API del sistema
+footer Siglas: API = interfaz de programación de aplicaciones; HTTPS = HTTP seguro; JSON = formato de intercambio de datos; SFTP = protocolo seguro de transferencia de archivos; SQL = lenguaje de consulta de bases de datos; TCP = protocolo de control de transmisión.
+
+
+Container(web, "Aplicación web", "Contenedor: React, TypeScript", "Muestra las pantallas del pensionado, del apoderado y de la consola interna.")
+Container(app, "App móvil", "Contenedor: React Native", "Ofrece en iOS y Android las funciones del pensionado y del apoderado.")
+
+Boundary(api, "API del sistema", $type="Contenedor: Python, FastAPI") {
+  Component(gestion, "Controlador de Gestión de Usuario", "Componente: FastAPI", "Registra y verifica las cuentas, controla el ingreso y el bloqueo y valida la sesión y el rol.")
+  Component(mediador, "Controlador de Mediador de módulos", "Componente: Python, patrón Mediator", "Lleva cada solicitud de un módulo al módulo que la atiende.")
+  Component(notif, "Controlador de Notificaciones", "Componente: FastAPI", "Envía códigos, avisos y alertas por el canal preferido, con reintentos.")
+  Component(publicador, "Controlador Publicador de eventos", "Componente: Python, patrón Observer", "Entrega cada evento a los módulos suscritos.")
+  Component(auditoria, "Controlador de Auditoría", "Componente: FastAPI", "Registra los eventos y resultados y atiende las consultas de Compliance.")
+  Component(pension, "Controlador de Pensión y Productos", "Componente: FastAPI", "Procesa el archivo de pagos, abona en el core y entrega el saldo, el historial y las autorizaciones.")
+}
+
+System_Ext(antifraude, "Motor antifraude", "Evalúa el riesgo de cada acceso.", $type="Sistema de software externo")
+ContainerDb(bd, "Base de datos", "Contenedor: PostgreSQL", "Guarda cifrada la información del sistema; la auditoría va en tablas de solo inserción.")
+System_Ext(operador, "Operador de mensajería", "Entrega los SMS, correos y llamadas.", $type="Sistema de software externo")
+System_Ext(entidad, "Entidad estatal de pagos", "Envía el archivo de pagos de las pensiones.", $type="Sistema de software externo")
+System_Ext(core, "Core bancario", "Mantiene los saldos y movimientos y registra los abonos.", $type="Sistema de software externo")
+System_Ext(certificadora, "Entidad de certificación digital", "Firma la autorización del apoderado.", $type="Sistema de software externo")
+
+Rel(web, gestion, "Hace llamadas API a", "JSON/HTTPS")
+Rel(web, auditoria, "Hace llamadas API a", "JSON/HTTPS")
+Rel(web, notif, "Hace llamadas API a", "JSON/HTTPS")
+Rel(web, pension, "Hace llamadas API a", "JSON/HTTPS")
+Rel(app, gestion, "Hace llamadas API a", "JSON/HTTPS")
+Rel(app, notif, "Hace llamadas API a", "JSON/HTTPS")
+Rel(app, pension, "Hace llamadas API a", "JSON/HTTPS")
+
+BiRel_R(gestion, mediador, "Pide y atiende\nsolicitudes por", "llamada en memoria")
+Rel_R(mediador, auditoria, "Entrega RegistrarResultado a", "llamada en memoria")
+BiRel_L(notif, mediador, "Pide y atiende\nsolicitudes por", "llamada en memoria")
+Rel_R(gestion, publicador, "Publica CuentaBloqueada y\nAccesoSospechoso en", "llamada en memoria")
+Rel_R(publicador, auditoria, "Entrega los eventos a", "llamada en memoria")
+Rel_L(publicador, notif, "Entrega los eventos a", "llamada en memoria")
+Rel_L(pension, publicador, "Publica AbonoRegistrado en", "llamada en memoria")
+
+Rel(gestion, bd, "Lee y escribe en", "SQL/TCP")
+Rel(auditoria, bd, "Inserta y consulta\nregistros en", "SQL/TCP")
+Rel(notif, bd, "Lee y escribe en", "SQL/TCP")
+Rel(pension, bd, "Lee y escribe en", "SQL/TCP")
+
+Rel(gestion, antifraude, "Solicita la evaluación\ndel riesgo a", "JSON/HTTPS")
+Rel(notif, operador, "Solicita el envío\nde avisos a", "JSON/HTTPS")
+Rel_U(entidad, pension, "Deposita el archivo\nde pagos en", "SFTP")
+Rel(pension, core, "Consulta saldos y\nregistra abonos en", "JSON/HTTPS")
+Rel(pension, certificadora, "Solicita la firma\ndigital a", "JSON/HTTPS")
+
+Lay_R(web, app)
+Lay_R(gestion, mediador)
+Lay_R(mediador, notif)
+Lay_R(notif, publicador)
+Lay_R(publicador, auditoria)
+Lay_R(auditoria, pension)
+Lay_R(antifraude, operador)
+Lay_R(operador, bd)
+Lay_R(bd, entidad)
+Lay_R(entidad, core)
+Lay_R(core, certificadora)
+
+SHOW_LEGEND()
+@enduml
