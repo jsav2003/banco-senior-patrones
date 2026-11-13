@@ -1,0 +1,179 @@
+
+==============================================================================
+BANCO SENIOR+ | Mini demo de Observer y Mediator (problema P-05)
+==============================================================================
+Datos sintéticos (Ley 1581 de 2012). Core bancario y operador de mensajería simulados.
+El celular de Jorge Iván Ocampo está caído: el operador no le entrega mensajes.
+
+Armando el sistema (sistema.py):
+[MEDIATOR]  MediadorModulos conecta a GestionUsuario, Notificaciones y Auditoria
+[OBSERVER]  Auditoria se suscribe a los eventos
+[OBSERVER]  Notificaciones se suscribe a los eventos
+
+==============================================================================
+ESCENARIO 1. Día de pago: abono y aviso (US-201, US-301, RNF-006)
+==============================================================================
+  > ProcesadorConsignacion solo PUBLICA AbonoRegistrado (Observer).
+  > Notificaciones pide el contacto y reporta el resultado POR EL MEDIADOR (Mediator).
+
+[PENSION]   Procesando pagos_2026-11.csv
+[CORE]      Abono de $1.423.500 en la cuenta 4001-0001 (TX-0001)
+[OBSERVER]  Se publica AbonoRegistrado(documento 1001001) a 2 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(AbonoRegistrado)
+        [AUDITORIA] Registra «AbonoRegistrado» del documento 1001001
+    [OBSERVER]  -> Notificaciones.actualizar(AbonoRegistrado)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001001) -> la atiende GestionUsuario
+        [OPERADOR]  SMS a 3001110001: "Hola, Rosa: su pensión de $1.423.500 del periodo 2026-11 ya está en su cuenta."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001001
+        [NOTIFICA]  Aviso a 0,00 s del abono: dentro del plazo de US-301
+[CORE]      Abono de $2.150.000 en la cuenta 4001-0002 (TX-0002)
+[OBSERVER]  Se publica AbonoRegistrado(documento 1001002) a 2 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(AbonoRegistrado)
+        [AUDITORIA] Registra «AbonoRegistrado» del documento 1001002
+    [OBSERVER]  -> Notificaciones.actualizar(AbonoRegistrado)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001002) -> la atiende GestionUsuario
+        [OPERADOR]  SMS a 3001110002: el operador no responde
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso FALLIDO) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso FALLIDO» del documento 1001002
+[CORE]      Abono de $1.980.300 en la cuenta 4001-0003 (TX-0003)
+[OBSERVER]  Se publica AbonoRegistrado(documento 1001003) a 2 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(AbonoRegistrado)
+        [AUDITORIA] Registra «AbonoRegistrado» del documento 1001003
+    [OBSERVER]  -> Notificaciones.actualizar(AbonoRegistrado)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001003) -> la atiende GestionUsuario
+        [OPERADOR]  CORREO a carmen.rios@correo.test: "Hola, Carmen: su pensión de $1.980.300 del periodo 2026-11 ya está en su cuenta."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001003
+        [NOTIFICA]  Aviso a 0,00 s del abono: dentro del plazo de US-301
+[CORE]      Abono de $1.650.000 en la cuenta 4001-0004 (TX-0004)
+[OBSERVER]  Se publica AbonoRegistrado(documento 1001004) a 2 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(AbonoRegistrado)
+        [AUDITORIA] Registra «AbonoRegistrado» del documento 1001004
+    [OBSERVER]  -> Notificaciones.actualizar(AbonoRegistrado)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001004) -> la atiende GestionUsuario
+        [OPERADOR]  LLAMADA a 3001110004: "Hola, Luis: su pensión de $1.650.000 del periodo 2026-11 ya está en su cuenta."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001004
+        [NOTIFICA]  Aviso a 0,00 s del abono: dentro del plazo de US-301
+[PENSION]   Pedro Pablo Ruiz (1009999) no concilia: va al reporte de diferencias
+
+Resultado: 4 abonos y 1 diferencia en 0,00 s (US-201 pide menos de 3 horas).
+  Reporte de diferencias: Pedro Pablo Ruiz (1009999) no tiene cuenta en el banco.
+  Avisos entregados: 3 de 4. El de Jorge falló, pero su abono de $2.150.000 sigue en la cuenta:
+  el error se quedó en Notificaciones y Auditoría lo registró.
+
+==============================================================================
+ESCENARIO 2. Registro con código de verificación (US-101, US-102)
+==============================================================================
+  > GestionUsuario y Notificaciones se piden cosas en AMBOS sentidos sin conocerse:
+  > todo pasa por MediadorModulos (Mediator).
+
+[GESTION]   Registro de Ana Beatriz Gómez: se genera su código de verificación
+[MEDIATOR]  GestionUsuario pide EnviarCodigo(1001005) -> la atiende Notificaciones
+    [MEDIATOR]  Notificaciones pide ConsultarContacto(1001005) -> la atiende GestionUsuario
+    [OPERADOR]  SMS a 3001110005: "Hola, Ana: su código de verificación es 605828. Vence en 15 minutos."
+    [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+        [AUDITORIA] Registra «Aviso enviado» del documento 1001005
+
+Resultado: código de verificación enviado por el canal por defecto (SMS).
+
+==============================================================================
+ESCENARIO 3. Seguridad: cinco intentos fallidos de Luis (US-303, US-108)
+==============================================================================
+  > GestionUsuario PUBLICA AccesoSospechoso al 4.º intento y CuentaBloqueada al 5.º (Observer).
+  > Notificaciones decide por su cuenta: alerta por dos canales y luego aviso de bloqueo.
+
+[GESTION]   Intento fallido número 1 de Luis Alberto Castaño
+[GESTION]   Intento fallido número 2 de Luis Alberto Castaño
+[GESTION]   Intento fallido número 3 de Luis Alberto Castaño
+[GESTION]   Intento fallido número 4 de Luis Alberto Castaño
+[OBSERVER]  Se publica AccesoSospechoso(documento 1001004) a 2 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(AccesoSospechoso)
+        [AUDITORIA] Registra «AccesoSospechoso» del documento 1001004
+    [OBSERVER]  -> Notificaciones.actualizar(AccesoSospechoso)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001004) -> la atiende GestionUsuario
+        [OPERADOR]  LLAMADA a 3001110004: "Hola, Luis: hubo varios intentos fallidos de ingreso a su cuenta. Si no fue usted, llame a Soporte."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001004
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001004) -> la atiende GestionUsuario
+        [OPERADOR]  CORREO a luis.castano@correo.test: "Hola, Luis: hubo varios intentos fallidos de ingreso a su cuenta. Si no fue usted, llame a Soporte."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001004
+[GESTION]   Intento fallido número 5 de Luis Alberto Castaño
+[OBSERVER]  Se publica CuentaBloqueada(documento 1001004) a 2 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(CuentaBloqueada)
+        [AUDITORIA] Registra «CuentaBloqueada» del documento 1001004
+    [OBSERVER]  -> Notificaciones.actualizar(CuentaBloqueada)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001004) -> la atiende GestionUsuario
+        [OPERADOR]  LLAMADA a 3001110004: "Hola, Luis: su cuenta quedó bloqueada 30 minutos por intentos fallidos. Si no fue usted, llame a Soporte."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001004
+
+Resultado: cuenta de Luis bloqueada hasta las 13:08; alertas por llamada (su canal preferido) y por correo.
+
+==============================================================================
+ESCENARIO 4. Escalabilidad: se agrega el historial (US-203) sin tocar el procesador
+==============================================================================
+  > Una sola línea nueva: publicador.suscribir(historial).
+  > ProcesadorConsignacion no cambia y el historial empieza a recibir los abonos.
+
+[OBSERVER]  HistorialConsignaciones se suscribe a los eventos
+[PENSION]   Procesando pagos_2026-12.csv
+[CORE]      Abono de $1.423.500 en la cuenta 4001-0001 (TX-0005)
+[OBSERVER]  Se publica AbonoRegistrado(documento 1001001) a 3 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(AbonoRegistrado)
+        [AUDITORIA] Registra «AbonoRegistrado» del documento 1001001
+    [OBSERVER]  -> Notificaciones.actualizar(AbonoRegistrado)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001001) -> la atiende GestionUsuario
+        [OPERADOR]  SMS a 3001110001: "Hola, Rosa: su pensión de $1.423.500 del periodo 2026-12 ya está en su cuenta."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001001
+        [NOTIFICA]  Aviso a 0,00 s del abono: dentro del plazo de US-301
+    [OBSERVER]  -> HistorialConsignaciones.actualizar(AbonoRegistrado)
+        [HISTORIAL] Agrega la consignación 2026-12 del documento 1001001
+[CORE]      Abono de $1.980.300 en la cuenta 4001-0003 (TX-0006)
+[OBSERVER]  Se publica AbonoRegistrado(documento 1001003) a 3 suscriptores
+    [OBSERVER]  -> Auditoria.actualizar(AbonoRegistrado)
+        [AUDITORIA] Registra «AbonoRegistrado» del documento 1001003
+    [OBSERVER]  -> Notificaciones.actualizar(AbonoRegistrado)
+        [MEDIATOR]  Notificaciones pide ConsultarContacto(1001003) -> la atiende GestionUsuario
+        [OPERADOR]  CORREO a carmen.rios@correo.test: "Hola, Carmen: su pensión de $1.980.300 del periodo 2026-12 ya está en su cuenta."
+        [MEDIATOR]  Notificaciones pide RegistrarResultado(aviso enviado) -> la atiende Auditoria
+            [AUDITORIA] Registra «Aviso enviado» del documento 1001003
+        [NOTIFICA]  Aviso a 0,00 s del abono: dentro del plazo de US-301
+    [OBSERVER]  -> HistorialConsignaciones.actualizar(AbonoRegistrado)
+        [HISTORIAL] Agrega la consignación 2026-12 del documento 1001003
+
+Historial de Rosa Elena Martínez (1001001), del más reciente al más antiguo:
+  2026-12    $1.423.500  Abonada
+  (El abono de 2026-11 no aparece: ocurrió antes de que el historial se suscribiera.)
+
+==============================================================================
+REGISTRO DE AUDITORÍA (RNF-006)
+==============================================================================
+  12:38:13  AbonoRegistrado   1001001  nombre Rosa Elena Martínez, monto $1.423.500, periodo 2026-11, transacción TX-0001
+  12:38:13  Aviso enviado     1001001  sms a 3001110001
+  12:38:13  AbonoRegistrado   1001002  nombre Jorge Iván Ocampo, monto $2.150.000, periodo 2026-11, transacción TX-0002
+  12:38:13  Aviso FALLIDO     1001002  sms a 3001110002
+  12:38:13  AbonoRegistrado   1001003  nombre Carmen Lucía Ríos, monto $1.980.300, periodo 2026-11, transacción TX-0003
+  12:38:13  Aviso enviado     1001003  correo a carmen.rios@correo.test
+  12:38:13  AbonoRegistrado   1001004  nombre Luis Alberto Castaño, monto $1.650.000, periodo 2026-11, transacción TX-0004
+  12:38:13  Aviso enviado     1001004  llamada a 3001110004
+  12:38:13  Aviso enviado     1001005  sms a 3001110005
+  12:38:13  AccesoSospechoso  1001004  intentos 4
+  12:38:13  Aviso enviado     1001004  llamada a 3001110004
+  12:38:13  Aviso enviado     1001004  correo a luis.castano@correo.test
+  12:38:13  CuentaBloqueada   1001004  minutos 30
+  12:38:13  Aviso enviado     1001004  llamada a 3001110004
+  12:38:13  AbonoRegistrado   1001001  nombre Rosa Elena Martínez, monto $1.423.500, periodo 2026-12, transacción TX-0005
+  12:38:13  Aviso enviado     1001001  sms a 3001110001
+  12:38:13  AbonoRegistrado   1001003  nombre Carmen Lucía Ríos, monto $1.980.300, periodo 2026-12, transacción TX-0006
+  12:38:13  Aviso enviado     1001003  correo a carmen.rios@correo.test
+
+==============================================================================
+RESUMEN DE LOS PATRONES
+==============================================================================
+  Observer: 8 eventos publicados. Quien publica no conoce a ningún suscriptor.
+  Mediator: 21 solicitudes atendidas (10 ConsultarContacto, 1 EnviarCodigo, 10 RegistrarResultado).
+  Referencias directas entre módulos: 0. Cada módulo solo conoce al mediador, al publicador o a un sistema externo.

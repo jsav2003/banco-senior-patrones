@@ -1,0 +1,30 @@
+test_auditoria_registra_cada_abono (tests.test_flujo.PruebasFlujo.test_auditoria_registra_cada_abono) ... ok
+test_cada_aviso_sale_por_el_canal_preferido (tests.test_flujo.PruebasFlujo.test_cada_aviso_sale_por_el_canal_preferido) ... ok
+test_dia_de_pago_abona_lo_que_concilia_y_reporta_diferencias (tests.test_flujo.PruebasFlujo.test_dia_de_pago_abona_lo_que_concilia_y_reporta_diferencias) ... ok
+test_el_aviso_del_abono_sale_en_menos_de_5_minutos (tests.test_flujo.PruebasFlujo.test_el_aviso_del_abono_sale_en_menos_de_5_minutos) ... ok
+test_el_cuarto_intento_fallido_alerta_por_dos_canales (tests.test_flujo.PruebasFlujo.test_el_cuarto_intento_fallido_alerta_por_dos_canales) ... ok
+test_el_historial_se_agrega_sin_modificar_el_procesador (tests.test_flujo.PruebasFlujo.test_el_historial_se_agrega_sin_modificar_el_procesador) ... ok
+test_el_quinto_intento_fallido_bloquea_y_avisa (tests.test_flujo.PruebasFlujo.test_el_quinto_intento_fallido_bloquea_y_avisa) ... ok
+test_intentos_espaciados_no_generan_alerta_de_acceso_sospechoso (tests.test_flujo.PruebasFlujo.test_intentos_espaciados_no_generan_alerta_de_acceso_sospechoso) ... ok
+test_no_hay_referencias_directas_entre_modulos (tests.test_flujo.PruebasFlujo.test_no_hay_referencias_directas_entre_modulos) ... ok
+test_un_archivo_ya_procesado_no_se_abona_dos_veces (tests.test_flujo.PruebasFlujo.test_un_archivo_ya_procesado_no_se_abona_dos_veces) ... ok
+test_un_aviso_fallido_no_revierte_el_abono_y_queda_auditado (tests.test_flujo.PruebasFlujo.test_un_aviso_fallido_no_revierte_el_abono_y_queda_auditado) ... ok
+test_el_mediador_lleva_consultar_contacto_a_gestion_de_usuario (tests.test_mediator.PruebasMediator.test_el_mediador_lleva_consultar_contacto_a_gestion_de_usuario) ... ok
+test_el_mediador_rechaza_una_solicitud_que_no_conoce (tests.test_mediator.PruebasMediator.test_el_mediador_rechaza_una_solicitud_que_no_conoce) ... ok
+test_el_registro_pide_el_codigo_y_sale_por_el_canal_preferido (tests.test_mediator.PruebasMediator.test_el_registro_pide_el_codigo_y_sale_por_el_canal_preferido) ... ok
+test_los_modulos_solo_guardan_referencia_al_mediador (tests.test_mediator.PruebasMediator.test_los_modulos_solo_guardan_referencia_al_mediador) ... ok
+test_notificaciones_se_prueba_sola_con_un_mediador_de_prueba (tests.test_mediator.PruebasMediator.test_notificaciones_se_prueba_sola_con_un_mediador_de_prueba) ... ok
+test_registrar_resultado_llega_a_auditoria (tests.test_mediator.PruebasMediator.test_registrar_resultado_llega_a_auditoria) ... ok
+test_un_modulo_sin_mediador_avisa_con_un_error_claro (tests.test_mediator.PruebasMediator.test_un_modulo_sin_mediador_avisa_con_un_error_claro) ... ok
+test_desuscribir_deja_de_entregar_eventos (tests.test_observer.PruebasObserver.test_desuscribir_deja_de_entregar_eventos) ... ok
+test_el_suscriptor_solo_recibe_eventos_posteriores_a_su_suscripcion (tests.test_observer.PruebasObserver.test_el_suscriptor_solo_recibe_eventos_posteriores_a_su_suscripcion) ... ok
+test_publicar_entrega_el_evento_a_todos_los_suscriptores (tests.test_observer.PruebasObserver.test_publicar_entrega_el_evento_a_todos_los_suscriptores) ... ok
+test_suscribir_dos_veces_no_duplica_la_entrega (tests.test_observer.PruebasObserver.test_suscribir_dos_veces_no_duplica_la_entrega) ... ok
+test_suscriptor_es_una_interfaz_que_obliga_a_implementar_actualizar (tests.test_observer.PruebasObserver.test_suscriptor_es_una_interfaz_que_obliga_a_implementar_actualizar) ... ok
+test_un_suscriptor_nuevo_no_requiere_cambiar_al_publicador (tests.test_observer.PruebasObserver.test_un_suscriptor_nuevo_no_requiere_cambiar_al_publicador) ... ok
+test_un_suscriptor_que_falla_no_impide_que_los_demas_reciban (tests.test_observer.PruebasObserver.test_un_suscriptor_que_falla_no_impide_que_los_demas_reciban) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.006s
+
+OK
