@@ -120,5 +120,5 @@ class HistorialConsignaciones(Suscriptor):
     def consultar(self, documento: str) -> List[Consignacion]:
         """Consignaciones del pensionado, de la más reciente a la más antigua."""
         return sorted(
-            self._por_documento.get(documento, []), key=lambda c: c.fecha, reverse=True
+            self._por_documento.get(documento, []), key=lambda c: (c.fecha, c.periodo), reverse=True
         )
